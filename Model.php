@@ -43,6 +43,12 @@ abstract class Model {
     protected $attributes = array();
     
     /**
+     * Przechowuje ostatni blad bazy danych
+     * @var Exception
+     */
+    protected $lastSaveError = null;
+    
+    /**
      * Zwraca nowa instancje modelu
      * @return __CLASS__
      */
@@ -59,6 +65,7 @@ abstract class Model {
         $this->pk = $this->getPrimaryKey();
         $this->pk = is_array($this->pk)?$this->pk:array($this->pk);
         $this->tableName = $this->getTableName();
+        $this->db = Db::getInstance();
         
         if($attributes !== null){
             $this->objectToAttributes($attributes);
@@ -78,10 +85,12 @@ abstract class Model {
         if(is_array($pk)){
             $where = $this->arrayToWhere($pk);
         } else {
-            if(count($this->pk)>0){
+            if(count($this->pk)>1){
                 throw new Exception("Specyfy all primary keys");
             }
-            $where = "`{$this->pk}` = ".$this->quote($pk);
+            reset($this->pk);
+            $pkName = $this->pk[key($this->pk)];
+            $where = "`{$pkName}` = ".$this->quote($pk);
         }
         $raw = $this->db->getOne("SELECT * from `{$this->tableName}` WHERE $where");
         if(!$raw){
@@ -157,22 +166,25 @@ abstract class Model {
     
     /**
      * Zapisuje rekord do bazy
-     * @return boolean | Model
+     * @return boolean
      */
     public function save(){
+        $this->lastSaveError = null;
         try{
             switch($this->mode){
                 case self::INSERT:
                     $keys = array_keys($this->attributes);
-                    foreach($keys as $key){
+                    foreach($keys as &$key){
                         $key = "`{$key}`";
                     }
+                    unset($key);
                     $keys = implode(",",$keys);
 
                     $values = array_values($this->attributes);
-                    foreach($values as $val){
+                    foreach($values as &$val){
                         $val = $this->quote($val);
                     }
+                    unset($val);
                     $values = implode(",",$values);
 
                     $this->db->insert("INSERT INTO `{$this->tableName}` ({$keys}) VALUES ({$values})");
@@ -196,8 +208,9 @@ abstract class Model {
                     $this->db->update("UPDATE `{$this->tableName}` set $fields WHERE $where");
                     break;
             }
-            return $this;
+            return true;
         } catch(Exception $ex){
+            $this->lastSaveError = $ex;
             return false;
         }
     }
@@ -223,6 +236,15 @@ abstract class Model {
         return $this->attributes[$name];
     }
     
+    /**
+     * Zwraca ostatni blad zapisu
+     * @return Exception
+     */
+    function getLastSaveError() {
+        return $this->lastSaveError;
+    }
+
+        
     protected function getPkValues(){
         $return = array();
         $pk = $this->pk;

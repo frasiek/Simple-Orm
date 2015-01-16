@@ -1,5 +1,7 @@
 <?php
 
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "SampleModel.php";
+
 use SO\Db;
 use SO\Exception;
 
@@ -36,81 +38,91 @@ class DbTest extends PHPUnit_Framework_TestCase {
                 COLLATE='utf8_general_ci'
                 ENGINE=InnoDB");
         $this->object->query("INSERT INTO test_table values (1, 'test', '2015-01-16', 1)");
+        $this->object->query("INSERT INTO test_table values (2, 'test2', '2015-01-16', 1)");
     }
 
     public function testModel() {
         try {
             $this->connect();
             $this->assertTrue($this->object->connected());
+            $this->assertInstanceOf("SampleModel", SampleModel::model());
         } catch (Exception $ex) {
             $this->assertTrue(false);
         }
     }
-    
-    public function testFindByPk($pk){
-        $where = '';
-        if(is_array($pk)){
-            $where = $this->arrayToWhere($pk);
-        } else {
-            if(count($this->pk)>0){
-                throw new Exception("Specyfy all primary keys");
-            }
-            $where = "`{$this->pk}` = ".$this->quote($pk);
-        }
-        $raw = $this->db->getOne("SELECT * from `{$this->tableName}` WHERE $where");
-        if(!$raw){
-            return null;
-        }
-        $this->objectToAttributes($raw);
-        return $this;
-    }
-    
-    /**
-     * Zwraca jeden obiek wg zadanych atrybutow 
-     * @param array $attrs
-     * @return \SO\Model
-     */
-    public function testFindByAttributes(array $attrs){
-        $where = $this->arrayToWhere($attrs);
-        $raw = $this->db->getOne("SELECT * from `{$this->tableName}` WHERE $where");
-        if(!$raw){
-            return null;
-        }
-        $this->objectToAttributes($raw);
-        return $this;
-    }
-    
-    /**
-     * Zwraca obiek wg warunku
-     * @param type $where
-     * @return \SO\Model
-     */
-    public function testFindByCondition($where){
-        $raw = $this->db->getOne("SELECT * from `{$this->tableName}` WHERE $where");
-        if(!$raw){
-            return null;
-        }
-        $this->objectToAttributes($raw);
-        return $this;
-    }
-    
-    /**
-     * @covers \SO\Model::save
-     */ function testFindAllByAttributes(array $attrs){
-        
-    }
-    
-    /**
-     * @covers \SO\Model::save
-     */
-    public function testFindAllByCondition($where){
 
+    /**
+     * @covers \SO\Model::findByPk
+     */
+    public function testFindByPk() {
+        $this->connect();
+        $model = SampleModel::model()->findByPk(1);
+        $this->assertInstanceOf("SampleModel", $model);
+        $this->assertTrue($model->id == 1);
     }
-    
+
+    /**
+     * @covers \SO\Model::findByAttributes
+     */
+    public function testFindByAttributes() {
+        $this->connect();
+        $model = SampleModel::model()->findByAttributes(array("id" => 1));
+        $this->assertInstanceOf("SampleModel", $model);
+        $this->assertTrue($model->id == 1);
+    }
+
+    /**
+     * @covers \SO\Model::findByCondition
+     */
+    public function testFindByCondition() {
+        $this->connect();
+        $model = SampleModel::model()->findByCondition("id = 1");
+        $this->assertInstanceOf("SampleModel", $model);
+        $this->assertTrue($model->id == 1);
+    }
+
+    /**
+     * @covers \SO\Model::findAllByAttributes
+     */ 
+    public function testFindAllByAttributes() {
+        $this->connect();
+
+        $models = SampleModel::model()->findAllByAttributes(array("quantity" => 1));
+        $this->assertInternalType("array", $models);
+        $i = 1;
+        foreach($models as $model){
+            $this->assertInstanceOf("SampleModel", $model);
+            $this->assertTrue($model->id == $i++);
+        }
+    }
+
+    /**
+     * @covers \SO\Model::findAllByCondition
+     */
+    public function testFindAllByCondition() {
+        $models = SampleModel::model()->findAllByCondition("quantity = 1");
+        $this->assertInternalType("array", $models);
+        $i = 1;
+        foreach($models as $model){
+            $this->assertInstanceOf("SampleModel", $model);
+            $this->assertTrue($model->id == $i++);
+        }
+    }
+
     /**
      * @covers \SO\Model::save
      */
-    public function testSave(){
-        
+    public function testSave() {
+        $this->connect();
+        $model = new SampleModel();
+        $model->nazwa = "nowo dodany";
+        $model->date = "2014-01-01";
+        $model->quantity = 666;
+        $this->assertTrue($model->save());
+        $this->assertTrue($model->quantity == 666);
+        $model->quantity = 777;
+        $model->save();
+        $this->assertTrue($model->quantity == 777);
     }
+
 }

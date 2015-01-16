@@ -17,4 +17,13 @@ class SampleModel extends SO\Model{
         return 'test_table';
     }
     
+    /**
+     * @param \stdClass|null $attributes
+     * @return SampleModel
+     */
+    public static function model(\stdClass $attributes = null) {
+        return parent::model($attributes);
+    }
+
+    
 }
