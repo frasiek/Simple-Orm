@@ -199,6 +199,16 @@ class Db {
     }
     
     /**
+     * Dodanie nowego i zwraca ilosc zmodyfikowanych
+     * @param string $query
+     * @return int
+     * @throws Exception
+     */
+    public function insert($query){
+        return $this->update($query);
+    }
+    
+    /**
      * Wykonuje zadane usuniecia i zwraca ilosc zmodyfikowanych
      * @param string $query
      * @return int
@@ -219,6 +229,15 @@ class Db {
             throw new Exception($this->db->error, $this->db->errno);
         }
         return $result;
+    }
+    
+    /**
+     * Wycina potencjalnie niebezpieczne znaki ze stringu
+     * @param string $str string to escape
+     * @return string escaped string
+     */
+    public function escape($str){
+        return $this->db->escape_string($str);
     }
     
 }

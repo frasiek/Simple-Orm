@@ -38,11 +38,6 @@ class DbTest extends PHPUnit_Framework_TestCase {
         $this->object->query("INSERT INTO test_table values (1, 'test', '2015-01-16', 1)");
     }
 
-    protected function setUp() {
-        parent::setUp();
-        $this->connect();
-    }
-
     public function testConnection() {
         try {
             $this->connect();
