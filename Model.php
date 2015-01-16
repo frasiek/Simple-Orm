@@ -100,6 +100,18 @@ abstract class Model {
         return $this;
     }
     
+    
+    public function delete(){
+        if($this->mode !== self::UPDATE){
+            throw new Exception("Can't run without context - find element first");
+        }
+        $where = $this->arrayToWhere($this->getPkValues());
+        if($this->db->getOne("DELETE from `{$this->tableName}` WHERE $where")){
+            return true;
+        }
+        return false;
+    }
+    
     /**
      * Zwraca jeden obiek wg zadanych atrybutow 
      * @param array $attrs
@@ -134,11 +146,16 @@ abstract class Model {
      * @param array $attrs
      * @return Model[]
      */
-    public function findAllByAttributes(array $attrs){
-        $where = $this->arrayToWhere($attrs);
+    public function findAllByAttributes(array $attrs = null){
+        $where;
+        if(!$attrs){
+            $where = '1=1';
+        } else {
+            $where = $this->arrayToWhere($attrs);
+        }
         $raw = $this->db->getAll("SELECT * from `{$this->tableName}` WHERE $where");
         if(!$raw){
-            return null;
+            return array();
         }
         $return = array();
         foreach($raw as $new){
@@ -155,7 +172,7 @@ abstract class Model {
     public function findAllByCondition($where){
         $raw = $this->db->getAll("SELECT * from `{$this->tableName}` WHERE $where");
         if(!$raw){
-            return null;
+            return array();
         }
         $return = array();
         foreach($raw as $new){
