@@ -9,7 +9,7 @@ require_once dirname(__FILE__).DIRECTORY_SEPARATOR."Db.php";
  */
 abstract class Model {
     const INSERT = 'insert';
-    const UPDATE = 'insert';
+    const UPDATE = 'update';
     
     /**
      * Przechowuje nazwe tabeli do ktorej sie odnosi
@@ -27,7 +27,7 @@ abstract class Model {
      * Tryb pracy - INSERT | UPDATE
      * @var string
      */
-    private $mode;
+    protected $mode;
     
     /**
      * obiekt bazy danych
@@ -219,7 +219,7 @@ abstract class Model {
                         unset($fields[$field]);
                         $where[] = " `$field` = {$this->quote($this->$field)} ";
                     }
-                    $fields = implode(",", $where);
+                    $fields = implode(",", $fields);
                     $where = implode("AND", $where);
 
                     $this->db->update("UPDATE `{$this->tableName}` set $fields WHERE $where");
