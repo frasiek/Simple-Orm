@@ -28,3 +28,4 @@ Potem wystarczy zekstendować się z \SO\Model w celu stworzenie własnego model
 
 nadpisanie metody model z odpowiednim komentarzem pozwala nie gubić się netbeansowi
 z tym na jakim modelu operuje
+Join the chat at https://gitter.im/frasiek/Simple-Orm
